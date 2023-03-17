@@ -1,24 +1,21 @@
-name: Switch Node version
-on:
-  workflow_dispatch:
+name: interact with Github API
+on: 
   pull_request:
 
 jobs:
-  run-npm-test:
+  create-issue:
     runs-on: ubuntu-latest
-    env:
-      NODE_VERSION: 14
     steps:
-        - name: checkout
-          uses: actions/checkout@v3
-        - name : setup node
-          uses: actions/setup-node@v3
-          with:
-            node-version: ${{ env.NODE_VERSION }}
-        - name: node version
-          run: node -v
-        - name: run test
-          shell: bash
-          run: |
-            npm install
-            npm test
+      - name: Reduce SHA
+        id: reduce-sha
+        run: echo "VAR_SHA_REDUCE=${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
+      - name: Create issue
+        shell: bash
+        run: |
+          curl -L \
+          -X POST \
+          -H "Accept: application/vnd.github+json" \
+          -H "Authorization: Bearer ${{ secrets.TOKEN_EX3 }}"\
+          -H "X-GitHub-Api-Version: 2022-11-28" \
+          https://api.github.com/repos/OWNER/REPO/issues \
+          -d '{"title":"SHA-7: ${{ env.reduce-sha.outputs.VAR_SHA_REDUCE }}","body":"I'\''m having a problem with this.","assignees":["octocat"],"milestone":1,"labels":["bug"]}'
