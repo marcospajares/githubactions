@@ -1,24 +1,25 @@
-name: Switch Node version
-on:
-  workflow_dispatch:
+name: interact with Github API
+on: 
   pull_request:
 
 jobs:
-  run-npm-test:
+  create-issue:
+    permissions:
+      issues: write
     runs-on: ubuntu-latest
-    env:
-      NODE_VERSION: 14
     steps:
-        - name: checkout
-          uses: actions/checkout@v3
-        - name : setup node
-          uses: actions/setup-node@v3
-          with:
-            node-version: ${{ env.NODE_VERSION }}
-        - name: node version
-          run: node -v
-        - name: run test
-          shell: bash
-          run: |
-            npm install
-            npm test
+      - name: Reduce SHA
+        id: reduce-sha
+        run: echo "VAR_SHA_REDUCE=${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
+      - name: Create issue
+        shell: bash
+        run: |
+          curl --request POST \
+          --url https://api.github.com/repos/${{ github.repository }}/issues \
+          --header 'authorization: Bearer ${{ secrets.TOKEN_EX3 }}' \
+          --header 'content-type: application/json' \
+          --data '{
+            "title": "Automated issue for commit: ${{ steps.reduce-sha.outputs.VAR_SHA_REDUCE }}",
+            "body": "This issue was automatically created by the GitHub Action workflow **${{ github.workflow }}**. \n\n The commit hash was: _${{ steps.reduce-sha.outputs.VAR_SHA_REDUCE }}_."
+            }' \
+          --fail
