@@ -4,6 +4,6 @@ on:
 
 jobs:
   run-npm-test:
-    uses: ./.github/workflows/ex4_reusable.yaml@main
+    uses: ./.github/workflows/ex4_reusable.yaml
     with:
       node-version: 14
